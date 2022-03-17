@@ -15,8 +15,15 @@ GRANT ALL PRIVILEGES ON 영화db.* to r_tari@localhost;
 show databases;
 use 영화db;
 
+-- -----------------------------------------------------
+-- Schema 영화db
+-- -----------------------------------------------------
 
-
+-- -----------------------------------------------------
+-- Schema 영화db
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `영화db` DEFAULT CHARACTER SET utf8 ;
+USE `영화db` ;
 
 -- -----------------------------------------------------
 -- Table `영화db`.`배우`
@@ -30,12 +37,18 @@ CREATE TABLE IF NOT EXISTS `영화db`.`배우` (
   `몸무게` VARCHAR(3) NOT NULL,
   `혈액형` VARCHAR(2) NOT NULL,
   `배역` VARCHAR(45) NULL,
-  `영화코드` VARCHAR(20) NULL,
-  PRIMARY KEY (`주민번호`),
-  CONSTRAINT `fk_배우_영화1`
-    FOREIGN KEY (`영화코드`)
-    REFERENCES `영화db`.`영화` (`영화코드`)
-    );
+  PRIMARY KEY (`주민번호`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `영화db`.`장르`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `영화db`.`장르` (
+  `장르코드` VARCHAR(20) NOT NULL,
+  `장르명` VARCHAR(30) NULL,
+  PRIMARY KEY (`장르코드`))
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -48,28 +61,16 @@ CREATE TABLE IF NOT EXISTS `영화db`.`감독` (
   `출생일` VARCHAR(20) NULL,
   `출생지` VARCHAR(20) NULL,
   `학력` VARCHAR(20) NULL,
-  `영화코드` VARCHAR(20) NULL,
-  PRIMARY KEY (`감독등록번호`),
-  CONSTRAINT `fk_감독_영화1`
-    FOREIGN KEY (`영화코드`)
-    REFERENCES `영화db`.`영화` (`영화코드`)
-    );
-
-
--- -----------------------------------------------------
--- Table `영화db`.`장르`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `영화db`.`장르` (
-  `장르코드` VARCHAR(20) NOT NULL,
-  `장르명` VARCHAR(30) NULL,
-  PRIMARY KEY (`장르코드`));
+  `캐스팅_` INT NOT NULL,
+  PRIMARY KEY (`감독등록번호`))
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
 -- Table `영화db`.`영화`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `영화db`.`영화` (
-  `영화코드` VARCHAR(20) NOT NULL,
+  `영화코드` VARCHAR(20) NOT NULL DEFAULT '0001',
   `제목` VARCHAR(30) NOT NULL,
   `제작년도` VARCHAR(20) NOT NULL,
   `상영시간` VARCHAR(10) NOT NULL,
@@ -77,33 +78,56 @@ CREATE TABLE IF NOT EXISTS `영화db`.`영화` (
   `제작사` VARCHAR(30) NOT NULL,
   `배급사` VARCHAR(30) NOT NULL,
   `배우주민번호` VARCHAR(15) NOT NULL,
-  `감독등록번호` VARCHAR(5) NOT NULL,
   `장르코드` VARCHAR(20) NOT NULL,
+  `감독_감독등록번호` CHAR(5) NOT NULL,
   PRIMARY KEY (`영화코드`),
+  INDEX `fk_영화_배우1_idx` (`배우주민번호` ASC) VISIBLE,
+  INDEX `fk_영화_장르1_idx` (`장르코드` ASC) VISIBLE,
+  INDEX `fk_영화_감독1_idx` (`감독_감독등록번호` ASC) VISIBLE,
   CONSTRAINT `fk_영화_배우1`
     FOREIGN KEY (`배우주민번호`)
     REFERENCES `영화db`.`배우` (`주민번호`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_영화_감독1`
-    FOREIGN KEY (`감독등록번호`)
-    REFERENCES `영화db`.`감독` (`감독등록번호`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_영화_장르1`
     FOREIGN KEY (`장르코드`)
     REFERENCES `영화db`.`장르` (`장르코드`)
-   );
-   
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_영화_감독1`
+    FOREIGN KEY (`감독_감독등록번호`)
+    REFERENCES `영화db`.`감독` (`감독등록번호`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
 
-    
-    desc 영화;
-    desc 배우;
-    desc 감독;
-    desc 장르;
-    
-    -- 3 구현된 데이터베이스에 자료입력
 
+-- -----------------------------------------------------
+-- Table `영화db`.`캐스팅`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `영화db`.`캐스팅` (
+  `영화_영화코드` VARCHAR(20) NOT NULL,
+  `감독_감독등록번호` CHAR(5) NOT NULL,
+  `배우_주민번호` VARCHAR(15) NOT NULL,
+  INDEX `fk_캐스팅_영화1_idx` (`영화_영화코드` ASC) VISIBLE,
+  INDEX `fk_캐스팅_감독1_idx` (`감독_감독등록번호` ASC) VISIBLE,
+  INDEX `fk_캐스팅_배우1_idx` (`배우_주민번호` ASC) VISIBLE,
+  CONSTRAINT `fk_캐스팅_영화1`
+    FOREIGN KEY (`영화_영화코드`)
+    REFERENCES `영화db`.`영화` (`영화코드`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_캐스팅_감독1`
+    FOREIGN KEY (`감독_감독등록번호`)
+    REFERENCES `영화db`.`감독` (`감독등록번호`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_캐스팅_배우1`
+    FOREIGN KEY (`배우_주민번호`)
+    REFERENCES `영화db`.`배우` (`주민번호`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- insert 장르
@@ -244,10 +268,13 @@ CREATE TABLE IF NOT EXISTS `영화db`.`영화` (
                 '0008'
 			);
             
+        
+            
+            
             select  감독등록번호,이름, 
 					case when 성별=1 then '남'
 					else '여' end as 성별,
-					출생일,출생지,학력,영화코드
+					출생일,출생지,학력
      from 감독;
             
             
@@ -267,8 +294,8 @@ value(
             '187',
             '90',
             'AB',
-            '방랑자',
-            '0001'
+            '방랑자'
+            
             );
             
             
@@ -281,8 +308,8 @@ value(
             '177',
             '80',
             'B',
-            '주인공',
-            '0002'
+            '주인공'
+         
             );
             
 insert into 배우
@@ -294,8 +321,8 @@ value(
             '173',
             '83',
             'A',
-            '악역',
-            '0004'
+            '악역'
+          
             );
             
 insert into 배우
@@ -307,8 +334,8 @@ value(
             '167',
             '58',
             'O',
-            '주인공',
-            '0003'
+            '주인공'
+      
             );
             
 insert into 배우
@@ -320,8 +347,8 @@ value(
             '17',
             '90',
             'AB',
-            '무당',
-            '0005'
+            '무당'
+    
             );
             
 insert into 배우
@@ -333,8 +360,8 @@ value(
             '182',
             '87',
             'A',
-            '바이킹',
-            '0006'
+            '바이킹'
+    
             );
             
 insert into 배우
@@ -346,8 +373,8 @@ value(
             '175',
             '52',
             'B',
-            '여주인공',
-            '0007'
+            '여주인공'
+      
             );
             
 insert into 배우
@@ -359,8 +386,8 @@ value(
             '170',
             '65',
             'AB',
-            '국회의원',
-            '0008'
+            '국회의원'
+    
             );
             
 
@@ -369,8 +396,8 @@ value(
 	 select  주민번호,이름, 
 					case when 성별=1 then '남'
 					else '여' end as 성별,
-					출생지,키,몸무게,혈액형,배역,영화코드
-     from 배우;
+					출생지,키,몸무게,혈액형
+     from 배우 ;
     
     
    -- -----------------------------------------------------
@@ -386,8 +413,8 @@ value(
                 '코리아컬쳐웍스',
                 'TK 엔터',
                 '870402-1154218',
-                '30001',
-                '100003'
+                '100003',
+                 '30001'
 			);
 	 insert into 영화
     value(
@@ -398,9 +425,9 @@ value(
                 '2021-10-19',
                 '롯데컬쳐웍스',
                 '롯데엔터테인먼트',
-                '870402-1154218',
-                '30002',
-                '100002'
+                '720712-134588',
+                '100002',
+                '30002'
 			);
             
 	 insert into 영화
@@ -413,8 +440,9 @@ value(
                 '삼성영상사업단',
                 '쇼박스',
                 '820607-2257898',
-                '30003',
-                '100004'
+                '100004',
+                '30003'
+           
 			);
             
 	 insert into 영화
@@ -427,8 +455,8 @@ value(
                 '사나이픽처스',
                 'NEW',
                 '790503-1123457',
-                '30004',
-                '100004'
+                '100004',
+                '30004'
 			);
             
 	 insert into 영화
@@ -441,8 +469,8 @@ value(
                 '명필름',
                 '대우시네마',
                 '790830-1467728',
-                '30005',
-                '100005'
+                '100005',
+                 '30005'
 			);
             
 	 insert into 영화
@@ -455,8 +483,8 @@ value(
                 '동아수출공사',
                 '미도영화사',
                 '873751-1152218',
-                '30006',
-                '100006'
+                '100006',
+                '30006'
 			);
             
 	 insert into 영화
@@ -469,8 +497,8 @@ value(
                 '대원미디어',
                 '금강기획',
                 '920725-2142182',
-                '30007',
-                '100003'
+                '100003',
+                '30007'
 			);
             
 	 insert into 영화
@@ -483,12 +511,77 @@ value(
                 '광화문시네마',
                 '한컴',
                 '752022-1746128',
-                '30008',
-                '100001'
+                '100001',
+                 '30008'
 			);
     
     select * from 영화;
         
+        
+        
+      -- -----------------------------------------------------
+	-- insert 캐스팅
+	-- -----------------------------------------------------    
+        insert 캐스팅
+        value (
+					'0001',
+                    '30001',
+                    '870402-1154218'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0002',
+                    '30002',
+                    '720712-134588'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0003',
+                    '30003',
+                    '820607-2257898'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0004',
+                    '30004',
+                    '790503-1123457'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0005',
+                    '30005',
+                    '790830-1467728'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0006',
+                    '30006',
+                    '873751-1152218'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0007',
+                    '30008',
+                    '920725-2142182'
+                    );
+                    
+		 insert 캐스팅
+        value (
+					'0008',
+                    '30008',
+                    '752022-1746128'
+                    );
+                    
+		select* from 캐스팅;
+                    
+		
+                    
         
         
 --  4 2020년에 제작된 영화의 편수를 구하시오 
@@ -508,18 +601,23 @@ where 장르코드 not in('100001') ;
 
 
 -- 6 romantic comedy 자료 장르코드와 장르명 000111과 로맨틱 코미디로 변경 
+-- 어제와 같은 오류 1451,1452 에러
+/*
+update 장르 set 장르명='로맨틱 코미디', 장르코드='000111'
+where 장르명='Romantic comedy';
 
 update 영화 set  장르코드='000111'
 where 장르코드 in(select 장르코드 from 장르 where 장르명 = 'Romantic comedy');
-update 장르 set 장르명='로맨틱 코미디', 장르코드='000111'
-where 장르명='Romantic comedy';
 
 select * 
 from 장르;
 select * 
 from 영화;
-
+*/
 --  7 장르가 포르노에 해당하는 영화 정보 삭제
+
+delete from 캐스팅
+where 영화_영화코드 ='0006';
 
 delete from 영화
  where 장르코드='100006';
@@ -536,39 +634,17 @@ where 감독등록번호 ='30006';
  select  주민번호,이름, 
 					case when 성별=1 then '남'
 					else '여' end as 성별,
-					출생지,키,몸무게,혈액형,배역,영화코드
+					출생지,키,몸무게,혈액형,배역
      from 배우;
 
  select  감독등록번호,이름, 
 					case when 성별=1 then '남'
 					else '여' end as 성별,
-					출생일,출생지,학력,영화코드
+					출생일,출생지,학력
      from 감독;
 
 select* 
 from 영화;
-
-
-
-
-
-        
-        
-            
-                
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
 
 
 

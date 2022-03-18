@@ -602,19 +602,29 @@ where 장르코드 not in('100001') ;
 
 -- 6 romantic comedy 자료 장르코드와 장르명 000111과 로맨틱 코미디로 변경 
 -- 어제와 같은 오류 1451,1452 에러
-/*
-update 장르 set 장르명='로맨틱 코미디', 장르코드='000111'
-where 장르명='Romantic comedy';
+
+-- 에러 발생시 주석해제
+ SET foreign_key_checks=0;-- 해제
+
+
 
 update 영화 set  장르코드='000111'
 where 장르코드 in(select 장르코드 from 장르 where 장르명 = 'Romantic comedy');
 
+update 장르 set 장르명='로맨틱 코미디', 장르코드='000111'
+where 장르명='Romantic comedy';
+
+SET foreign_key_checks=1;-- 설정
 select * 
 from 장르;
 select * 
 from 영화;
-*/
+
 --  7 장르가 포르노에 해당하는 영화 정보 삭제
+
+-- 1451 에러 발생할시 주석 해제
+-- SET foreign_key_checks=0;
+
 
 delete from 캐스팅
 where 영화_영화코드 ='0006';
@@ -628,7 +638,8 @@ where 주민번호 ='873751-1152218';
  delete from 감독
 where 감독등록번호 ='30006';
 
- 
+-- 1451 에러 발생시 주석 해제
+-- SET foreign_key_checks=1;
  
 
  select  주민번호,이름, 
@@ -645,7 +656,3 @@ where 감독등록번호 ='30006';
 
 select* 
 from 영화;
-
-
-
-
